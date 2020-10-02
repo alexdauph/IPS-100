@@ -5,7 +5,7 @@
 #include "Console.h"
 
 
-#define WAIT_DEBUG				0x00			//À des fins de debug seulement lors de la création du module IPS-100,
+#define WAIT_DEBUG				0x00			//À des fins de debug seulement lors de la création du module IPS-100
 #define WAIT_WITH_ESC			0x00
 #define WAIT_DEFAULT			0x01
 #define MAX_FRAME_COUNT			64
