@@ -12,8 +12,8 @@
 #define I2B(v,n,x)	v = ((v & (~(3 << n))) | (x << n))	//Initialize two bits
 #define VB(v,n)     ((v & (1 << n)) > 0 ? 1:0)          //VerifyBit
 
-
-#define ST_TIMEOUT(x) STRELOAD = (x*96 - 1)	// (((x * 10^-6) / ((96 * 10^6)^-1)) - 1)	x -> number of microseconds
+#define ST_TIMEOUT(x) STRELOAD = (x*96 - 1)				// ((x * 10^-6) / ((96 * 10^6)^-1)) - 1)	x -> number of microseconds
+#define ST_TIMEOUT_10E8(x) STRELOAD = (x/40)			// x -> number of 10 nanoseconds
 
 
 #endif /* INC_macro_H_ */

@@ -32,9 +32,12 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
-!librairies/visual studio/Debug/IPS.lib
-!librairies/visual studio/Release/IPS.lib
+!librairies/visual studio/Debug/
+!librairies/visual studio/Release/
+!librairies/lpc1769/Debug/
+!librairies/lpc1769/Release/
 
+\visual studio\Debug
 # MCUXpresso
 *.launch
 

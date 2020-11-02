@@ -197,11 +197,11 @@ bool VCOM::wait_I2C(uint8_t val, uint32_t microSeconds) {
 }
 
 
-bool VCOM::wait_MOTO(uint32_t microSeconds) {
+bool VCOM::wait_MOTO(uint32_t tensNanoSeconds) {
 	uint8_t result = false;
 	uint32_t timeOut = STRELOAD;
 
-	ST_TIMEOUT(microSeconds);
+	ST_TIMEOUT_10E8(tensNanoSeconds);
 	SB(STCTRL, 0);
 
 	while (!VB(STCTRL, 16)) {
@@ -427,7 +427,7 @@ void VCOM::moto_Read(void) {
 			FIO0SET = 1 << 25;											//RW = Read
 			FIO0CLR = 1 << 24;											//STR actif
 
-			if (wait_MOTO(20000)) {
+			if (wait_MOTO(40)) {
 				header[0] = (FIO0PIN >> 16) & 0xFFFF;					//Capturer l'octet
 			}
 			else {
@@ -460,7 +460,7 @@ void VCOM::moto_Write(void) {
 			FIO0CLR = 1 << 25;											//RW = Write
 			FIO0CLR = 1 << 24;											//STR actif
 
-			if (wait_MOTO(20000)) {
+			if (wait_MOTO(40)) {
 				result = MOTOROLA_OK;									//Écriture ok
 			}
 			else {

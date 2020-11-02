@@ -96,7 +96,7 @@ private:
 	bool wait_UART_RX(Uart_e uart, uint32_t microSeconds);
 	bool wait_UART_TX(Uart_e uart, uint32_t microSeconds);
 	bool wait_I2C(uint8_t val, uint32_t microSeconds);
-	bool wait_MOTO(uint32_t microSeconds);
+	bool wait_MOTO(uint32_t tensNanoSeconds);
 
 	//Lecture et écriture en I2C
 	uint8_t i2c_Send(uint8_t address, uint8_t* buffer, uint8_t count);
