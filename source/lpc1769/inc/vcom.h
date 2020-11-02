@@ -79,45 +79,45 @@ private:
 
 private:
 	//Initiation du système
-	void init_ST(void);
-	void init_I2C(void);
-	void init_UART1(void);
-	void init_UART3(void);
-	void init_MOTOROLA(void);
+	void ST_init(void);
+	void i2c_init(void);
+	void uart1_init(void);
+	void uart3_init(void);
+	void motorola_init(void);
 
 	//Envoi et réception d'un octet sur le lien vcom
-	uint8_t com_GetByte(void);
-	bool com_SendByte(uint8_t byte);
-	uint8_t com_GetData(uint8_t* buffer, uint8_t count);
-	uint8_t com_SendData(uint8_t* buffer, uint8_t count);
+	uint8_t com_get_byte(void);
+	bool com_send_byte(uint8_t byte);
+	uint8_t com_get_data(uint8_t* buffer, uint8_t count);
+	uint8_t com_send_data(uint8_t* buffer, uint8_t count);
 
 	//Méthodes d'attente
-	bool wait_VCOM(uint32_t microSeconds);
-	bool wait_UART_RX(Uart_e uart, uint32_t microSeconds);
-	bool wait_UART_TX(Uart_e uart, uint32_t microSeconds);
-	bool wait_I2C(uint8_t val, uint32_t microSeconds);
-	bool wait_MOTO(uint32_t tensNanoSeconds);
+	bool wait_vcom(uint32_t microSeconds);
+	bool wait_uart_rx(Uart_e uart, uint32_t microSeconds);
+	bool wait_uart_tx(Uart_e uart, uint32_t microSeconds);
+	bool wait_i2c(uint8_t val, uint32_t microSeconds);
+	bool wait_moto(uint32_t tensNanoSeconds);
 
 	//Lecture et écriture en I2C
-	uint8_t i2c_Send(uint8_t address, uint8_t* buffer, uint8_t count);
-	uint8_t i2c_Get(uint8_t address, uint8_t* buffer, uint8_t count);
+	uint8_t i2c_send(uint8_t address, uint8_t* buffer, uint8_t count);
+	uint8_t i2c_get(uint8_t address, uint8_t* buffer, uint8_t count);
 
 public:
 	VCOM();
 	~VCOM();
 
 	//Méthodes appellées par l'application
-	void Init(void);
-	void Ping(void);
-	void i2c_Read(void);
-	void i2c_Write(void);
-	void uart_Read(void);
-	void uart_Write(void);
-	void moto_Read(void);
-	void moto_Write(void);
-	void uart_ModParam(void);
-	void uart_ModLines(void);
-	void uart_GetCount(void);
+	void init(void);
+	void ping(void);
+	void i2c_read(void);
+	void i2c_write(void);
+	void uart_read(void);
+	void uart_write(void);
+	void moto_read(void);
+	void moto_write(void);
+	void uart_mod_param(void);
+	void uart_mod_lines(void);
+	void uart_get_count(void);
 
 };
 

@@ -13,12 +13,12 @@
 #include "DMA.h"
 
 
-void VCOM::init_ST() {
+void VCOM::ST_init() {
 	SB(STCTRL,2);
 	ST_TIMEOUT(10);
 }
 
-void VCOM::init_I2C() {
+void VCOM::i2c_init() {
 	SB(PCONP, 7);
 	I2B(PCLKSEL0,14,1);				//24MHz
 
@@ -35,7 +35,7 @@ void VCOM::init_I2C() {
 	I2C0CONSET = 0x40;				//I2C Enable
 }
 
-void VCOM::init_UART1() {
+void VCOM::uart1_init() {
 	SB(PCONP, 4);				//Enable PCLK
 	U1TER = 0;					//Disable TX while configuration
 
@@ -73,7 +73,7 @@ void VCOM::init_UART1() {
 	SB(ISER0, 6);				//Enable UART3 interrupt
 }
 
-void VCOM::init_UART3() {
+void VCOM::uart3_init() {
 	SB(PCONP, 25);				//Enable PCLK
 	U3TER = 0;					//Disable TX while configuration
 
@@ -97,7 +97,7 @@ void VCOM::init_UART3() {
 	SB(ISER0,8);				//Enable UART3 interrupt
 }
 
-void VCOM::init_MOTOROLA() {
+void VCOM::motorola_init() {
 	PINSEL0 &= 0xFFF0000F;		//GPIO ADD
 	PINSEL1 &= 0xFFC00000;		//GPIO DATA / STR / RW / ACK
 

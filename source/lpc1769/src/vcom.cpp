@@ -16,17 +16,17 @@ using namespace std;
 VCOM vLink;																//VCOM class instance. Handles data headers (see "codes.h")
 
 Operation_t operations[11] = {
-		{ LPC_RQST, &VCOM::Init },
-		{ LPC_PING, &VCOM::Ping },
-		{ I2C_RD, &VCOM::i2c_Read },
-		{ I2C_WR, &VCOM::i2c_Write },
-		{ UART_RD, &VCOM::uart_Read },
-		{ UART_WR, &VCOM::uart_Write },
-		{ MOTOROLA_RD, &VCOM::moto_Read },
-		{ MOTOROLA_WR, &VCOM::moto_Write },
-		{ UART_MOD_PARAM, &VCOM::uart_ModParam },
-		{ UART_MOD_LINES, &VCOM::uart_ModLines },
-		{ UART_GET_CNT, &VCOM::uart_GetCount },
+		{ LPC_RQST, &VCOM::init },
+		{ LPC_PING, &VCOM::ping },
+		{ I2C_RD, &VCOM::i2c_read },
+		{ I2C_WR, &VCOM::i2c_write },
+		{ UART_RD, &VCOM::uart_read },
+		{ UART_WR, &VCOM::uart_write },
+		{ MOTOROLA_RD, &VCOM::moto_read },
+		{ MOTOROLA_WR, &VCOM::moto_write },
+		{ UART_MOD_PARAM, &VCOM::uart_mod_param },
+		{ UART_MOD_LINES, &VCOM::uart_mod_lines },
+		{ UART_GET_CNT, &VCOM::uart_get_count },
 
 };
 
@@ -47,12 +47,12 @@ VCOM::VCOM() {
 
 }
 
-void VCOM::Init(void) {
-	init_ST();
-	init_I2C();
-	init_UART1();
-	init_UART3();
-	init_MOTOROLA();
+void VCOM::init(void) {
+	ST_init();
+	i2c_init();
+	uart1_init();
+	uart3_init();
+	motorola_init();
 
 	uart1.registers = (UartReg_t*)0x40010000;
 	uart1.ID = RS232;
@@ -74,37 +74,37 @@ void VCOM::Init(void) {
 	SB(uart3.registers->FCR, 1);
 	uart3.registers->IIR;
 
-	com_SendByte(LPC_READY);
+	com_send_byte(LPC_READY);
 }
 
-void VCOM::Ping(void) {
-	com_SendByte(LPC_READY);
+void VCOM::ping(void) {
+	com_send_byte(LPC_READY);
 }
 
 //**************************************************************************************
 
-uint8_t VCOM::com_GetByte(void) {
+uint8_t VCOM::com_get_byte(void) {
 	uint8_t buffer[1];
-	com_GetData(buffer, 1);
+	com_get_data(buffer, 1);
 	return buffer[0];
 }
 
-bool VCOM::com_SendByte(uint8_t byte) {
+bool VCOM::com_send_byte(uint8_t byte) {
 	uint8_t buffer[1] = { byte };
-	return com_SendData(buffer, 1) == 1;
+	return com_send_data(buffer, 1) == 1;
 }
 
-uint8_t VCOM::com_GetData(uint8_t* buffer, uint8_t count) {
+uint8_t VCOM::com_get_data(uint8_t* buffer, uint8_t count) {
 	return vcom_bread(buffer, count);
 }
 
-uint8_t VCOM::com_SendData(uint8_t* buffer, uint8_t count) {
+uint8_t VCOM::com_send_data(uint8_t* buffer, uint8_t count) {
 	return vcom_write(buffer, count);
 }
 
 //**************************************************************************************
 
-bool VCOM::wait_VCOM(uint32_t microSeconds) {
+bool VCOM::wait_vcom(uint32_t microSeconds) {
 	uint8_t result = false;
 	uint32_t timeOut = STRELOAD;
 
@@ -125,7 +125,7 @@ bool VCOM::wait_VCOM(uint32_t microSeconds) {
 	return result;
 }
 
-bool VCOM::wait_UART_RX(Uart_e uartID, uint32_t microSeconds) {
+bool VCOM::wait_uart_rx(Uart_e uartID, uint32_t microSeconds) {
 	uint8_t result = false;
 	uint32_t timeOut = STRELOAD;
 	Uart_t* uart;
@@ -150,7 +150,7 @@ bool VCOM::wait_UART_RX(Uart_e uartID, uint32_t microSeconds) {
 	return result;
 }
 
-bool VCOM::wait_UART_TX(Uart_e uartID, uint32_t microSeconds) {
+bool VCOM::wait_uart_tx(Uart_e uartID, uint32_t microSeconds) {
 	uint8_t result = false;
 	uint32_t timeOut = STRELOAD;
 	Uart_t* uart;
@@ -175,7 +175,7 @@ bool VCOM::wait_UART_TX(Uart_e uartID, uint32_t microSeconds) {
 	return result;
 }
 
-bool VCOM::wait_I2C(uint8_t val, uint32_t microSeconds) {
+bool VCOM::wait_i2c(uint8_t val, uint32_t microSeconds) {
 	uint8_t result = false;
 	uint32_t timeOut = STRELOAD;
 
@@ -197,7 +197,7 @@ bool VCOM::wait_I2C(uint8_t val, uint32_t microSeconds) {
 }
 
 
-bool VCOM::wait_MOTO(uint32_t tensNanoSeconds) {
+bool VCOM::wait_moto(uint32_t tensNanoSeconds) {
 	uint8_t result = false;
 	uint32_t timeOut = STRELOAD;
 
@@ -220,63 +220,63 @@ bool VCOM::wait_MOTO(uint32_t tensNanoSeconds) {
 
 //**************************************************************************************
 
-void VCOM::i2c_Read(void) {
+void VCOM::i2c_read(void) {
 	uint8_t address;
 	uint8_t dataCount;
 	uint8_t header[2] = {};
 	uint8_t dataBuffer[256] = {};
 	uint8_t result = I2C_OK;
 
-	com_SendByte(I2C_READY);
+	com_send_byte(I2C_READY);
 
-	if (wait_VCOM(20000)) {
-		if (com_GetData(header, 2) == 2) {
+	if (wait_vcom(20000)) {
+		if (com_get_data(header, 2) == 2) {
 			address = header[0];
 			dataCount = header[1];
 		}
 
-		result = i2c_Get(address, dataBuffer, dataCount);
-		com_SendByte(result);
+		result = i2c_get(address, dataBuffer, dataCount);
+		com_send_byte(result);
 
 		for (uint16_t i = 0; i < dataCount; i += 32) {
-			if (wait_VCOM(20000)) {										//Attendre l'ordre de transmission de l'application
-				if (com_GetByte() != 0x01) { return; }					//0x01 = OK
-				com_SendData(dataBuffer + i, min(dataCount - i, 32));	//Envoyer 32 octets sur le lien vcom
+			if (wait_vcom(20000)) {										//Attendre l'ordre de transmission de l'application
+				if (com_get_byte() != 0x01) { return; }					//0x01 = OK
+				com_send_data(dataBuffer + i, min(dataCount - i, 32));	//Envoyer 32 octets sur le lien vcom
 			}
 			else { break; }												//L'application ne veux pas recevoir les octets
 		}
 	}
 }
 
-void VCOM::i2c_Write(void) {
+void VCOM::i2c_write(void) {
 	uint8_t address;
 	uint8_t dataCount;
 	uint8_t header[2] = {};
 	uint8_t dataBuffer[256] = {};
 	uint8_t result = I2C_OK;
 
-	com_SendByte(I2C_READY);
+	com_send_byte(I2C_READY);
 
-	if (wait_VCOM(20000)) {
-		if (com_GetData(header, 2) == 2) {
+	if (wait_vcom(20000)) {
+		if (com_get_data(header, 2) == 2) {
 			address = header[0];
 			dataCount = header[1];
 		}
 
 		for (uint16_t i = 0; i < dataCount; i += 32) {
-			com_SendByte(0x01);
-			if (wait_VCOM(20000)) {
-				if (com_GetData(&dataBuffer[i], min(dataCount - i, 32)) != min(dataCount - i, 32)) { return; }
+			com_send_byte(0x01);
+			if (wait_vcom(20000)) {
+				if (com_get_data(&dataBuffer[i], min(dataCount - i, 32)) != min(dataCount - i, 32)) { return; }
 			}
 			else { return; }
 		}
 
-		result = i2c_Send(address, dataBuffer, dataCount);
-		com_SendByte(result);
+		result = i2c_send(address, dataBuffer, dataCount);
+		com_send_byte(result);
 	}
 }
 
-void VCOM::uart_Read(void) {
+void VCOM::uart_read(void) {
 	uint8_t header[4] = {};
 	uint16_t dataCount;
 	uint8_t result = UART_OK;
@@ -287,10 +287,10 @@ void VCOM::uart_Read(void) {
 	//header[2] = Count MSB
 	//header[3] = Wait for data
 
-	com_SendByte(UART_READY);
+	com_send_byte(UART_READY);
 
-	if (wait_VCOM(20000)) {
-		if (com_GetData(header, 4) == 4) {
+	if (wait_vcom(20000)) {
+		if (com_get_data(header, 4) == 4) {
 
 			if (header[0] == RS232) { uart = &uart1; }
 			else if (header[0] == UART3) { uart = &uart3; }
@@ -299,7 +299,7 @@ void VCOM::uart_Read(void) {
 			if (uart->count == 0 && header[3] == true) {				//Attente du premier octet (RecevoirUnVecteur)
 				while (!uart->newData) {								//Vérifier si il y a une donnée UART disponible
 					if (GetCount()) {									//Donnée sur le lien VCOM
-						if (com_GetByte() == 0x55) {					//Ordre d'avorter l'attente du premier octet
+						if (com_get_byte() == 0x55) {					//Ordre d'avorter l'attente du premier octet
 							SB(uart->registers->IER, 0);				//Réactiver les interruptions
 							return;
 						}
@@ -322,7 +322,7 @@ void VCOM::uart_Read(void) {
 					break;
 				}
 
-				if (!wait_UART_RX((Uart_e)header[0], 100000)) {			//Aucune réception de données pour 100ms
+				if (!wait_uart_rx((Uart_e)header[0], 100000)) {			//Aucune réception de données pour 100ms
 					if (uart->count >= dataCount) { break; }
 					else if (uart->count > 0) { result = UART_UFLOW; }	//Moins de données que prévu
 					else { result = UART_EMPTY; }						//Aucune donnée disponible
@@ -336,23 +336,23 @@ void VCOM::uart_Read(void) {
 			header[0] = result;
 			header[1] = (dataCount & 0x00FF) >> 0;
 			header[2] = (dataCount & 0xFF00) >> 8;
-			com_SendData(header, 3);									//Envoyer le resultat à l'application
+			com_send_data(header, 3);									//Envoyer le resultat à l'application
 
 			for (uint16_t i = 0; i < dataCount; i += 32) {
 				uint8_t toSend = min(dataCount - i, 32);
 				uint8_t tempBuffer[32];
 
-				if (wait_VCOM(20000)) {
-					if (com_GetByte() != 0x01) { return; }
+				if (wait_vcom(20000)) {
+					if (com_get_byte() != 0x01) { return; }
 
 					if(uart->index + toSend > 2048) {
 						for(uint16_t j=0; j<toSend; j++) {
 							tempBuffer[j] = uart->rxData[((uart->index + j) % 2048)];
 						}
-						com_SendData(tempBuffer, toSend);				//Pour gerer "les wraps around" dans le FIFO software
+						com_send_data(tempBuffer, toSend);				//Pour gerer "les wraps around" dans le FIFO software
 					}
 					else {
-						com_SendData(uart->rxData + uart->index, toSend);	//Envoyer 32 octets sur le lien vcom
+						com_send_data(uart->rxData + uart->index, toSend);	//Envoyer 32 octets sur le lien vcom
 					}
 
 					uart->count -= toSend;
@@ -369,25 +369,25 @@ void VCOM::uart_Read(void) {
 	}
 }
 
-void VCOM::uart_Write(void) {
+void VCOM::uart_write(void) {
 	uint8_t header[3] = { };
 	uint16_t dataCount;
 	uint8_t result = UART_OK;
 	Uart_t* uart;
 
-	com_SendByte(UART_READY);
+	com_send_byte(UART_READY);
 
-	if (wait_VCOM(20000)) {
-		if (com_GetData(header, 3) == 3) {								//Sélection du UART + nombre d'octets
+	if (wait_vcom(20000)) {
+		if (com_get_data(header, 3) == 3) {								//Sélection du UART + nombre d'octets
 			if (header[0] == RS232) { uart = &uart1; }
 			else if (header[0] == UART3) { uart = &uart3; }
 			dataCount = (header[1] << 0) | (header[2] << 8);
 		}
 
 		for (uint16_t i = 0; i < dataCount; i += 32) {					//Réception des octets
-			com_SendByte(0x01);
-			if (wait_VCOM(20000)) {
-				if (com_GetData(&uart->txData[i], min(dataCount - i, 32)) != min(dataCount - i, 32)) { return; }	//Lire 32 octets sur le lien VCOM
+			com_send_byte(0x01);
+			if (wait_vcom(20000)) {
+				if (com_get_data(&uart->txData[i], min(dataCount - i, 32)) != min(dataCount - i, 32)) { return; }	//Lire 32 octets sur le lien VCOM
 			}
 			else { return; }
 		}
@@ -396,38 +396,38 @@ void VCOM::uart_Write(void) {
 			if (header[0] == RS232 && VB(U1MCR, 7)) {
 				while (!VB(U1LSR, 5)) {									//TODO twice same while loop
 					if (GetCount()) {									//Donnée sur le lien vcom
-						if (com_GetByte() == 0x55) {					//Ordre d'avorter l'envoi
+						if (com_get_byte() == 0x55) {					//Ordre d'avorter l'envoi
 							result = UART_ABORT;
 							break;
 						}
 					}
 				}
 			}
-			if (!wait_UART_TX((Uart_e)header[0], 100000)) {	break; }	//Attendre TX libre
+			if (!wait_uart_tx((Uart_e)header[0], 100000)) {	break; }	//Attendre TX libre
 			uart->registers->THR = uart->txData[i];						//Envoyer l'octet
 		}
 
-		com_SendData(&result, 1);
+		com_send_data(&result, 1);
 	}
 }
 
-void VCOM::moto_Read(void) {
+void VCOM::moto_read(void) {
 	uint8_t header[2] = {};
 	uint8_t result = MOTOROLA_OK;
 
 	//header[0] = address
 
-	com_SendByte(MOTOROLA_READY);
+	com_send_byte(MOTOROLA_READY);
 
-	if (wait_VCOM(20000)) {
-		if (com_GetData(header, 1) == 1) {
+	if (wait_vcom(20000)) {
+		if (com_get_data(header, 1) == 1) {
 
 			FIO0DIR &= 0xFF00FFFF;										//DATA input;
 			FIO0PIN = ((FIO0PIN & 0xFFFFFC03) | (header[0] << 2));		//ADD on GPIO0
 			FIO0SET = 1 << 25;											//RW = Read
 			FIO0CLR = 1 << 24;											//STR actif
 
-			if (wait_MOTO(40)) {
+			if (wait_moto(40)) {
 				header[0] = (FIO0PIN >> 16) & 0xFFFF;					//Capturer l'octet
 			}
 			else {
@@ -438,29 +438,29 @@ void VCOM::moto_Read(void) {
 			FIO0SET = 1 << 25;											//RW inactif
 
 			header[1] = result;
-			com_SendData(header, 2);									//Envoyer octet et resultat
+			com_send_data(header, 2);									//Envoyer octet et resultat
 		}
 	}
 }
 
-void VCOM::moto_Write(void) {
+void VCOM::moto_write(void) {
 	uint8_t header[2] = {};
 	uint8_t result = MOTOROLA_OK;
 
 	//header[0] = address
 	//header[1] = data
 
-	com_SendByte(MOTOROLA_READY);
+	com_send_byte(MOTOROLA_READY);
 
-	if (wait_VCOM(20000)) {
-		if (com_GetData(header, 2) == 2) {
+	if (wait_vcom(20000)) {
+		if (com_get_data(header, 2) == 2) {
 
 			FIO0DIR |= 0x00FF0000;										//DATA output;
 			FIO0PIN = ((FIO0PIN & 0xFF00FC03) | (header[0] << 2) | (header[1] << 16));	//ADD + DATA on GPIO0
 			FIO0CLR = 1 << 25;											//RW = Write
 			FIO0CLR = 1 << 24;											//STR actif
 
-			if (wait_MOTO(40)) {
+			if (wait_moto(40)) {
 				result = MOTOROLA_OK;									//Écriture ok
 			}
 			else {
@@ -472,20 +472,20 @@ void VCOM::moto_Write(void) {
 
 			header[0] = header[1];
 			header[1] = result;
-			com_SendData(header, 2);									//Envoyer resultat
+			com_send_data(header, 2);									//Envoyer resultat
 		}
 	}
 }
 
-void VCOM::uart_ModParam(void) {
+void VCOM::uart_mod_param(void) {
 	uint8_t header[3] = { };
 	uint8_t result = UART_OK;
 	Uart_t* uart;
 
-	com_SendByte(UART_READY);
+	com_send_byte(UART_READY);
 
-	if (wait_VCOM(20000)) {
-		if (com_GetData(header, 3) == 3) {
+	if (wait_vcom(20000)) {
+		if (com_get_data(header, 3) == 3) {
 			if (header[0] == RS232) { uart = &uart1; }
 			else if (header[0] == UART3) { uart = &uart3; }
 
@@ -505,21 +505,21 @@ void VCOM::uart_ModParam(void) {
 			}
 			CB(uart->registers->LCR, 7);
 
-			com_SendData(&result, 1);
+			com_send_data(&result, 1);
 		}
 	}
 }
 
-void VCOM::uart_ModLines(void) {
+void VCOM::uart_mod_lines(void) {
 	uint8_t header[1] = { };
 	uint8_t result = UART_OK;
 	uint8_t RS232Lines;
 	uint8_t returnBuf[2] = {};
 
-	com_SendByte(UART_READY);
+	com_send_byte(UART_READY);
 
-	if (wait_VCOM(20000)) {
-		if (com_GetData(header, 1) == 1) {
+	if (wait_vcom(20000)) {
+		if (com_get_data(header, 1) == 1) {
 			RS232Lines = header[0];
 
 			IB(U1MCR, 0, VB(RS232Lines, 0));							//Ligne DTR
@@ -530,20 +530,20 @@ void VCOM::uart_ModLines(void) {
 
 			returnBuf[0] = RS232Lines;
 			returnBuf[1] = result;
-			com_SendData(returnBuf, 2);
+			com_send_data(returnBuf, 2);
 		}
 	}
 }
 
-void VCOM::uart_GetCount(void) {										//Nombre d'octet en attente de lecture
+void VCOM::uart_get_count(void) {										//Nombre d'octet en attente de lecture
 	uint8_t header[1] = { };
 	uint8_t result = UART_OK;
 	uint8_t returnBuf[3] = {};
 
-	com_SendByte(UART_READY);
+	com_send_byte(UART_READY);
 
-	if (wait_VCOM(20000)) {
-		if (com_GetData(header, 1) == 1) {
+	if (wait_vcom(20000)) {
+		if (com_get_data(header, 1) == 1) {
 
 			if (header[0] == RS232) {									//UART1 ou UART3
 				returnBuf[0] = (uart1.count & 0x00FF) >> 0;
@@ -555,14 +555,14 @@ void VCOM::uart_GetCount(void) {										//Nombre d'octet en attente de lecture
 			}
 
 			returnBuf[2] = result;
-			com_SendData(returnBuf, 3);
+			com_send_data(returnBuf, 3);
 		}
 	}
 }
 
-uint8_t VCOM::i2c_Get(uint8_t address, uint8_t* buffer, uint8_t count) {
+uint8_t VCOM::i2c_get(uint8_t address, uint8_t* buffer, uint8_t count) {
 	I2C0CONSET = 0x20;
-	if (!wait_I2C(0x08, 20000)) {
+	if (!wait_i2c(0x08, 20000)) {
 		I2C0CONSET = 0x10;
 		I2C0CONCLR = 0x28;
 		return I2C_NO_START;
@@ -570,7 +570,7 @@ uint8_t VCOM::i2c_Get(uint8_t address, uint8_t* buffer, uint8_t count) {
 
 	I2C0DAT = address | 0x01;											//Slave address + read
 	I2C0CONCLR = 0x38;
-	if (!wait_I2C(0x40, 20000)) {
+	if (!wait_i2c(0x40, 20000)) {
 		I2C0CONSET = 0x10;
 		I2C0CONCLR = 0x28;
 		return I2C_NO_SLAVE;
@@ -579,7 +579,7 @@ uint8_t VCOM::i2c_Get(uint8_t address, uint8_t* buffer, uint8_t count) {
 	for (uint8_t i = 0; i < count - 1; i++) {
 		I2C0CONSET = 0x04;
 		I2C0CONCLR = 0x38;
-		if (!wait_I2C(0x50, 20000)) {
+		if (!wait_i2c(0x50, 20000)) {
 			I2C0CONSET = 0x10;
 			I2C0CONCLR = 0x28;
 			return I2C_NACK;
@@ -588,7 +588,7 @@ uint8_t VCOM::i2c_Get(uint8_t address, uint8_t* buffer, uint8_t count) {
 	}
 
 	I2C0CONCLR = 0x3C;
-	if (!wait_I2C(0x58, 20000)) {
+	if (!wait_i2c(0x58, 20000)) {
 		I2C0CONSET = 0x10;
 		I2C0CONCLR = 0x28;
 		return I2C_NACK;
@@ -600,9 +600,9 @@ uint8_t VCOM::i2c_Get(uint8_t address, uint8_t* buffer, uint8_t count) {
 	return I2C_OK;
 }
 
-uint8_t VCOM::i2c_Send(uint8_t address, uint8_t* buffer, uint8_t count) {
+uint8_t VCOM::i2c_send(uint8_t address, uint8_t* buffer, uint8_t count) {
 	I2C0CONSET = 0x20;
-	if (!wait_I2C(0x08, 20000)) {
+	if (!wait_i2c(0x08, 20000)) {
 		I2C0CONSET = 0x10;
 		I2C0CONCLR = 0x28;
 		return I2C_NO_START;
@@ -610,7 +610,7 @@ uint8_t VCOM::i2c_Send(uint8_t address, uint8_t* buffer, uint8_t count) {
 
 	I2C0DAT = address | 0x00;											//Slave address + write
 	I2C0CONCLR = 0x38;
-	if (!wait_I2C(0x18, 20000)) {
+	if (!wait_i2c(0x18, 20000)) {
 		I2C0CONSET = 0x10;
 		I2C0CONCLR = 0x28;
 		return I2C_NO_SLAVE;
@@ -619,7 +619,7 @@ uint8_t VCOM::i2c_Send(uint8_t address, uint8_t* buffer, uint8_t count) {
 	for (uint8_t i = 0; i < count; i++) {
 		I2C0DAT = buffer[i];
 		I2C0CONCLR = 0x38;
-		if (!wait_I2C(0x28, 20000)) {
+		if (!wait_i2c(0x28, 20000)) {
 			I2C0CONSET = 0x10;
 			I2C0CONCLR = 0x28;
 			return I2C_NACK;
