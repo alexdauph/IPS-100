@@ -2,11 +2,38 @@
 #include <sstream>
 #include <conio.h>
 #include "Console.h"
+#include "Window.h"
 #include "IPS.h"
 
+/************************************************************************************/
+/* CETTE PARTIE DE CODE EST DEJA INTEGREE DANS LA LIBRAIRIE IPS.lib */
+/* NE PAS ENLEVER #if false SINON PROBLEME DE COMPATIBILITE*/
+/************************************************************************************/
+
+void Console::draw_window(Window* window) {
+	COORD coord1;
+	COORD coord2;
+
+	if (window->coordTL.X == window->coordBR.X && window->coordTL.Y == window->coordBR.Y) { return; }
+
+	cursor_set_color(WHITE_ON_BLACK);
+
+	coord1.X = window->coordTL.X - 1;
+	coord1.Y = window->coordTL.Y - 1;
+	coord2.X = window->coordBR.X + 1;
+	coord2.Y = window->coordBR.Y + 1;
+
+	draw_rectangle(coord1, coord2);
+}
+
+void Console::clear_window(Window* window) {
+	clear_rectangle({ window->coordTL.X - 1,window->coordTL.Y - 1 }, { window->coordBR.X + 1,window->coordBR.Y + 1 });
+}
+
+
+#if false
 
 extern IPS ips;
-class Window;
 
 
 Console::Console() {
@@ -35,23 +62,23 @@ void Console::draw_line(COORD coordTL, COORD coordBR) {
 }
 
 void Console::draw_separation(COORD coordTL, COORD coordBR) {
-	/*//COORD coord = coordTL;
+	////COORD coord = coordTL;
 
-	//cursor_set_position(coord);
-	draw_line(coordTL, coordBR);
+	////cursor_set_position(coord);
+	//draw_line(coordTL, coordBR);
 
-	if (coordTL.Y == coordBR.Y) {		//Horizontal
-		cursor_set_position({ coordTL.X,coordTL.Y - 1 });
-		cout << char(194);
-		cursor_set_position({ coordBR.X,coordBR.Y + 1 });
-		cout << char(193);
-	}
-	else {								//Vertical
-		cursor_set_position({ coordTL.X,coordTL.Y - 1 });
-		cout << char(194);
-		cursor_set_position({ coordBR.X,coordBR.Y + 1 });
-		cout << char(193);
-	}*/
+	//if (coordTL.Y == coordBR.Y) {		//Horizontal
+	//	cursor_set_position({ coordTL.X,coordTL.Y - 1 });
+	//	cout << char(194);
+	//	cursor_set_position({ coordBR.X,coordBR.Y + 1 });
+	//	cout << char(193);
+	//}
+	//else {								//Vertical
+	//	cursor_set_position({ coordTL.X,coordTL.Y - 1 });
+	//	cout << char(194);
+	//	cursor_set_position({ coordBR.X,coordBR.Y + 1 });
+	//	cout << char(193);
+	//}
 }
 
 void Console::draw_corners(COORD coordTL, COORD coordBR) {
@@ -120,7 +147,7 @@ void Console::clear_rectangle(COORD coordTL, COORD coordBR) {
 	}
 }
 
-/*void Console::draw_window(Window* window) {
+void Console::draw_window(Window* window) {
 	COORD coord1;
 	COORD coord2;
 
@@ -138,7 +165,7 @@ void Console::clear_rectangle(COORD coordTL, COORD coordBR) {
 
 void Console::clear_window(Window* window) {
 	clear_rectangle({ window->coordTL.X - 1,window->coordTL.Y - 1 }, { window->coordBR.X + 1,window->coordBR.Y + 1 });
-}*/
+}
 
 /************************************************************************************/
 
@@ -350,11 +377,11 @@ uint8_t Console::io_input(uint8_t* buffer, uint8_t stringCount, COORD cursorCoor
 			cout << "\b \b";
 		}
 		else if (key == KEY_UP || key == KEY_DOWN) {
-			if (key == KEY_UP && mode < 2) {
-				mode++;
+			if (key == KEY_UP && mode < 2) { 
+				mode++; 
 				changed = true;
 			}
-			else if (key == KEY_DOWN && mode > 0) {
+			else if (key == KEY_DOWN && mode > 0) { 
 				mode--;
 				changed = true;
 			}
@@ -429,3 +456,5 @@ uint8_t Console::io_input_cycle(const string* options, const uint8_t* tValues, u
 		}
 	}
 }
+
+#endif

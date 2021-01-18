@@ -88,8 +88,8 @@ IPS::IPS(uint8_t port) {
 	mVirtualPort = new SerialPort;
 
 	if (!com_connect(port)) {
-		console.clear_Rectangle({ 0, 3 }, { 79, 3 });
-		console.io_WriteText({ 0,3 }, "Impossible d'ouvrir le port COM fourni par le constructeur", WHITE_ON_BLACK);
+		console.clear_rectangle({ 0, 3 }, { 79, 3 });
+		console.io_write_text({ 0,3 }, "Impossible d'ouvrir le port COM fourni par le constructeur", WHITE_ON_BLACK);
 		while (!com_connect());
 	}
 }
@@ -104,13 +104,13 @@ IPS::~IPS() {
 /******************************************************************************************************************/
 
 uint8_t IPS::com_connect() {
-	uint16_t height = console.screen_GetTop();
+	uint16_t height = console.screen_get_top();
 
 	while (1) {
-		console.clear_Rectangle({ 0, height + 2 }, { 79, height + 2 });
-		console.io_WriteText({ 0, height + 2 }, "Entrez le numero du port COM : ", WHITE_ON_BLACK);
+		console.clear_rectangle({ 0, height + 2 }, { 79, height + 2 });
+		console.io_write_text({ 0, height + 2 }, "Entrez le numero du port COM : ", WHITE_ON_BLACK);
 
-		if (console.io_Input((uint32_t*)&mPort, 2, 10)) {
+		if (console.io_input((uint32_t*)&mPort, 2, 10)) {
 			cout << "\n\r";
 			break;
 		}
@@ -122,7 +122,7 @@ uint8_t IPS::com_connect(uint8_t port) {
 	uint8_t result;
 	uint8_t byte;
 	uint8_t command;
-	uint16_t height = console.screen_GetTop();
+	uint16_t height = console.screen_get_top();
 
 	mPort = port;
 	mVirtualPort->Close();
@@ -144,14 +144,14 @@ uint8_t IPS::com_connect(uint8_t port) {
 		}
 		else {
 			mVirtualPort->Close();
-			console.clear_Rectangle({ 0, height + 3 }, { 79, height + 3 });
-			console.io_WriteText({ 0, height + 3 }, "Aucun module IPS-100 disponible sur ce port", WHITE_ON_BLACK);
+			console.clear_rectangle({ 0, height + 3 }, { 79, height + 3 });
+			console.io_write_text({ 0, height + 3 }, "Aucun module IPS-100 disponible sur ce port", WHITE_ON_BLACK);
 			return 0;
 		}
 	}
 	else {
-		console.clear_Rectangle({ 0, height + 3 }, { 79, height + 3 });
-		console.io_WriteText({ 0, height + 3 }, "Impossible d'ouvrir ce port COM", WHITE_ON_BLACK);
+		console.clear_rectangle({ 0, height + 3 }, { 79, height + 3 });
+		console.io_write_text({ 0, height + 3 }, "Impossible d'ouvrir ce port COM", WHITE_ON_BLACK);
 		return 0;
 	}
 }
@@ -200,14 +200,14 @@ BOOL IPS::com_wait(uint8_t breakCondition) {
 			}
 		}
 		else if (breakCondition == WAIT_WITH_ESC && _kbhit()) {
-			if (console.io_Getch() == KEY_ESC) {					//Utilisé dans les méthodes où on attend des données pour une durée indéterminée
+			if (console.io_getch() == KEY_ESC) {					//Utilisé dans les méthodes où on attend des données pour une durée indéterminée
 				com_send_byte(0x55);
 				return false;
 			}
 		}
 		#else 
 		if (breakCondition == WAIT_WITH_ESC && _kbhit()) {
-			if (console.io_Getch() == KEY_ESC) {					//Utilisé dans les méthodes où on attend des données pour une durée indéterminée
+			if (console.io_getch() == KEY_ESC) {					//Utilisé dans les méthodes où on attend des données pour une durée indéterminée
 				com_send_byte(0x55);
 				return false;
 			}
@@ -240,17 +240,17 @@ uint8_t IPS::com_verify(uint8_t result) {
 }
 
 void IPS::error_handle(uint8_t error) {
-	uint16_t height = console.screen_GetTop();
+	uint16_t height = console.screen_get_top();
 
-	console.screen_Save();
-	console.screen_Clear();
+	console.screen_save();
+	console.screen_clear();
 	if (error == LPC_LOST)
-		console.io_WriteText({ 17, height + 12 }, "ERREUR CRITIQUE : PERTE DE CONTACT AVEC LE LPC", YELLOW_ON_BLACK);
+		console.io_write_text({ 17, height + 12 }, "ERREUR CRITIQUE : PERTE DE CONTACT AVEC LE LPC", YELLOW_ON_BLACK);
 	else if (error == LPC_ERROR)
-		console.io_WriteText({ 22, height + 12 }, "ERREUR CRITIQUE : BRIS DE PROTOCOLE", YELLOW_ON_BLACK);
+		console.io_write_text({ 22, height + 12 }, "ERREUR CRITIQUE : BRIS DE PROTOCOLE", YELLOW_ON_BLACK);
 
 	while (!com_connect());
-	console.screen_Print();
+	console.screen_print();
 }
 
 
@@ -258,7 +258,7 @@ void IPS::error_handle(uint8_t error) {
 /* Information par rapport au code de résultat */
 /******************************************************************************************************************/
 
-LogLevel_e IPS::code_get_code_level(uint8_t code) {
+LogLevel_e IPS::code_get_level(uint8_t code) {
 	for (uint8_t i = 0; i < CODE_COUNT; i++) {
 		if (code == debugLogs[i].ID) { return debugLogs[i].level; }
 	}
@@ -266,10 +266,10 @@ LogLevel_e IPS::code_get_code_level(uint8_t code) {
 	return INVALIDE;
 }
 
-string IPS::code_get_code_level_text(uint8_t code) {
+string IPS::code_get_level_text(uint8_t code) {
 	for (uint8_t i = 0; i < CODE_COUNT; i++) {
 		if (code == debugLogs[i].ID) {
-			return ("[" + LogText[debugLogs[i].level] + "] " + console.io_IntToHex(code, 2)) + " - " + debugLogs[i].name;
+			return ("[" + LogText[debugLogs[i].level] + "] " + console.io_int_to_hex(code, 2)) + " - " + debugLogs[i].name;
 		}
 	}
 
@@ -379,7 +379,7 @@ uint8_t IPS::uart_set_param(Uart_e uart) {
 	const uint8_t stopBitsVals[2] = { 0x00, 0x04 };
 	const uint8_t parityVals[5] = { 0x00, 0x8, 0x18, 0x28, 0x38 };
 
-	COORD coord = console.cursor_GetPosition();
+	COORD coord = console.cursor_get_position();
 	uint8_t oldBaudRate, newBaudRate = 0x00;
 	uint8_t oldRegLCR, newRegLCR = 0x00;
 	uint8_t var;
@@ -393,22 +393,22 @@ uint8_t IPS::uart_set_param(Uart_e uart) {
 		oldRegLCR = mUart3LCR;
 	}
 
-	console.io_WriteText(coord, "Debit binaire : ", WHITE_ON_BLACK);
-	if (console.io_InputCycle(bitRate, bitRateVals, &newBaudRate, oldBaudRate, 8)) {
+	console.io_write_text(coord, "Debit binaire : ", WHITE_ON_BLACK);
+	if (console.io_input_cycle(bitRate, bitRateVals, &newBaudRate, oldBaudRate, 8)) {
 
 		coord.Y++;
-		console.io_WriteText(coord, "Bits par mot : ", WHITE_ON_BLACK);
-		if (console.io_InputCycle(bitCount, bitCountVals, &var, oldRegLCR & MASK_BITCOUNT, 4)) {
+		console.io_write_text(coord, "Bits par mot : ", WHITE_ON_BLACK);
+		if (console.io_input_cycle(bitCount, bitCountVals, &var, oldRegLCR & MASK_BITCOUNT, 4)) {
 
 			newRegLCR |= var;
 			coord.Y++;
-			console.io_WriteText(coord, "Bits d'arret : ", WHITE_ON_BLACK);
-			if (console.io_InputCycle(stopBits, stopBitsVals, &var, oldRegLCR & MASK_STOPBITS, 2)) {
+			console.io_write_text(coord, "Bits d'arret : ", WHITE_ON_BLACK);
+			if (console.io_input_cycle(stopBits, stopBitsVals, &var, oldRegLCR & MASK_STOPBITS, 2)) {
 
 				newRegLCR |= var;
 				coord.Y++;
-				console.io_WriteText(coord, "Partite : ", WHITE_ON_BLACK);
-				if (console.io_InputCycle(parity, parityVals, &var, oldRegLCR & MASK_PARITY, 5)) {
+				console.io_write_text(coord, "Partite : ", WHITE_ON_BLACK);
+				if (console.io_input_cycle(parity, parityVals, &var, oldRegLCR & MASK_PARITY, 5)) {
 
 					newRegLCR |= var;
 					uart__mod_param(uart, newRegLCR, newBaudRate);
@@ -431,7 +431,7 @@ uint8_t IPS::uart_get_param(Uart_e uart) {
 	const uint8_t stopBitsVals[2] = { 0x00, 0x04 };
 	const uint8_t parityVals[5] = { 0x00, 0x8, 0x18, 0x28, 0x38 };
 
-	COORD coord = console.cursor_GetPosition();
+	COORD coord = console.cursor_get_position();
 	uint8_t oldBaudRate;
 	uint8_t oldRegLCR;
 	uint8_t var;
@@ -447,7 +447,7 @@ uint8_t IPS::uart_get_param(Uart_e uart) {
 
 	for (uint8_t i = 0; i < 8; i++) {
 		if (oldBaudRate == bitRateVals[i]) {
-			console.io_WriteText(coord, "Debit binaire : " + bitRate[i], WHITE_ON_BLACK);
+			console.io_write_text(coord, "Debit binaire : " + bitRate[i], WHITE_ON_BLACK);
 			break;
 		}
 	}
@@ -455,7 +455,7 @@ uint8_t IPS::uart_get_param(Uart_e uart) {
 	coord.Y++;
 	for (uint8_t i = 0; i < 4; i++) {
 		if ((oldRegLCR & MASK_BITCOUNT) == bitCountVals[i]) {
-			console.io_WriteText(coord, "Bits par mot : " + bitCount[i], WHITE_ON_BLACK);
+			console.io_write_text(coord, "Bits par mot : " + bitCount[i], WHITE_ON_BLACK);
 			break;
 		}
 	}
@@ -463,7 +463,7 @@ uint8_t IPS::uart_get_param(Uart_e uart) {
 	coord.Y++;
 	for (uint8_t i = 0; i < 2; i++) {
 		if ((oldRegLCR & MASK_STOPBITS) == stopBitsVals[i]) {
-			console.io_WriteText(coord, "Bits d'arret : " + stopBits[i], WHITE_ON_BLACK);
+			console.io_write_text(coord, "Bits d'arret : " + stopBits[i], WHITE_ON_BLACK);
 			break;
 		}
 	}
@@ -471,7 +471,7 @@ uint8_t IPS::uart_get_param(Uart_e uart) {
 	coord.Y++;
 	for (uint8_t i = 0; i < 5; i++) {
 		if ((oldRegLCR & MASK_PARITY) == parityVals[i]) {
-			console.io_WriteText(coord, "Partite : " + parity[i], WHITE_ON_BLACK);
+			console.io_write_text(coord, "Partite : " + parity[i], WHITE_ON_BLACK);
 			break;
 		}
 	}
@@ -558,7 +558,7 @@ uint8_t IPS::i2c_read(uint8_t address, uint8_t* buffer, uint8_t count) {
 			if (com_wait(WAIT_DEFAULT)) {							//press esc to abort
 				result = com_get_byte();
 
-				if (code_get_code_level(result) <= AVERTISSEMENT) {		//I2C_OK ou I2C_UFLOW
+				if (code_get_level(result) <= AVERTISSEMENT) {		//I2C_OK ou I2C_UFLOW
 					for (uint16_t i = 0; i < count; i += 32) {
 						com_send_byte(0x01);							//Indiquer au LPC que l'application est prête a recevoir des nouveaux octets
 
@@ -629,7 +629,7 @@ uint8_t IPS::uart_read(Uart_e uart, uint8_t* buffer, uint16_t* count, BOOL wait)
 				result = header[0];
 				*count = (header[1] << 0) | (header[2] << 8);
 
-				if (code_get_code_level(result) <= AVERTISSEMENT) {		//UART_OK ou UART_UFLOW
+				if (code_get_level(result) <= AVERTISSEMENT) {		//UART_OK ou UART_UFLOW
 					for (uint16_t i = 0; i < *count; i += 32) {
 						com_send_byte(0x01);							//Indiquer au LPC que l'application est prête a recevoir des nouveaux octets
 

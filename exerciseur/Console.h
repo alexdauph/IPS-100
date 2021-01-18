@@ -51,9 +51,9 @@ public:
 	void draw_separation(COORD coordTL, COORD coordBR);
 	void draw_corners(COORD coordTL, COORD coordBR);
 	void draw_rectangle(COORD coordTL, COORD coordBR);
+	void draw_window(Window* window);
 	void clear_rectangle(COORD coordTL, COORD coordBR);
-	//void draw_window(Window* window);
-	//void clear_window(Window* window);
+	void clear_window(Window* window);
 
 	void screen_save(void);
 	void screen_print(void);
@@ -77,4 +77,5 @@ public:
 	void cursor_change_line(uint8_t count);
 	void cursor_set_visibility(uint8_t status);
 	void cursor_set_color(uint8_t color);
+
 };
