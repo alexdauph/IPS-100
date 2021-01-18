@@ -36,6 +36,8 @@ bld/
 !librairies/visual studio/Release/
 !librairies/lpc1769/Debug/
 !librairies/lpc1769/Release/
+!exerciseur/Debug/
+!exerciseur/Release/
 
 \visual studio\Debug
 # MCUXpresso
